@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>The Porch</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --wood: #8b6f47;
+            --wood-dark: #6b5344;
+            --sky-day: #87ceeb;
+            --sky-sunset: #ff9a76;
+            --sky-night: #2c3e50;
+            --goose: #f5f5f5;
+            --beak: #ff8c42;
+            --accent: #c4a77d;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            overflow-x: hidden;
+            min-height: 100vh;
+            position: relative;
+        }
+        
+        /* Sky */
+        .sky {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 0;
+            transition: background 1.5s ease;
+        }
+        
+        .sky.spring { background: linear-gradient(to bottom, #a8d8ea 0%, #e8f4f8 50%, #fff5e6 100%); }
+        .sky.summer { background: linear-gradient(to bottom, #87ceeb 0%, #ffd89b 100%); }
+        .sky.fall { background: linear-gradient(to bottom, #ff9a76 0%, #ffd89b 50%, #d4a574 100%); }
+        .sky.winter { background: linear-gradient(to bottom, #2c3e50 0%, #4a6741 100%); }
+        
+        /* Stars for winter */
+        .stars {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0;
+            transition: opacity 1.5s;
+        }
+        .sky.winter ~ .stars { opacity: 1; }
+        
+        .star {
+            position: absolute;
+            width: 2px; height: 2px;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 2s infinite;
+        }
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 1; }
+        }
+        
+        /* Porch floor */
+        .floor {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            height: 30vh;
+            background: repeating-linear-gradient(
+                90deg,
+                var(--wood) 0px,
+                var(--wood) 50px,
+                var(--wood-dark) 50px,
+                var(--wood-dark) 54px
+            );
+            z-index: 2;
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.15);
+        }
+        
+        .floor::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 8px;
+            background: var(--wood-dark);
+        }
+        
+        /* Main content */
+        .porch {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 60px 20px 40vh;
+            min-height: 100vh;
+        }
+        
+        /* Goose */
+        .goose-house {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .goose {
+            width: 180px;
+            height: 220px;
+            position: relative;
+            margin: 0 auto 20px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        
+        .goose:active { transform: scale(0.96); }
+        
+        .goose-body {
+            width: 100px;
+            height: 120px;
+            background: var(--goose);
+            border-radius: 50% 50% 45% 45%;
+            position: absolute;
+            bottom: 35px;
+            left: 40px;
+            box-shadow: inset -8px -8px 16px rgba(0,0,0,0.06);
+        }
+        
+        .goose-head {
+            width: 60px;
+            height: 70px;
+            background: var(--goose);
+            border-radius: 50% 50% 45% 45%;
+            position: absolute;
+            top: 15px;
+            left: 60px;
+        }
+        
+        .goose-beak {
+            width: 28px;
+            height: 18px;
+            background: var(--beak);
+            border-radius: 50% 20% 20% 50%;
+            position: absolute;
+            top: 45px;
+            right: -8px;
+        }
+        
+        .goose-eye {
+            width: 7px;
+            height: 7px;
+            background: #333;
+            border-radius: 50%;
+            position: absolute;
+            top: 32px;
+            right: 12px;
+        }
+        
+        .goose-eye::after {
+            content: '';
+            width: 2.5px; height: 2.5px;
+            background: white;
+            border-radius: 50%;
+            position: absolute;
+            top: 1px; right: 1.5px;
+        }
+        
+        .goose-wing {
+            width: 42px;
+            height: 70px;
+            background: #e8e8e8;
+            border-radius: 50% 20% 50% 20%;
+            position: absolute;
+            bottom: 45px;
+            left: 18px;
+            transform: rotate(-12deg);
+        }
+        
+        .goose-foot {
+            width: 14px;
+            height: 22px;
+            background: var(--beak);
+            position: absolute;
+            bottom: 12px;
+            border-radius: 0 0 50% 50%;
+        }
+        .foot-left { left: 65px; }
+        .foot-right { right: 65px; }
+        
+        /* Outfits */
+        .outfit {
+            position: absolute;
+            display: none;
+        }
+        .outfit.active { display: block; }
+        
+        /* Spring - flower crown */
+        .outfit[data-outfit="spring"] .crown {
+            width: 80px;
+            height: 25px;
+            position: absolute;
+            top: 8px;
+            left: 50px;
+        }
+        .outfit[data-outfit="spring"] .crown::before,
+        .outfit[data-outfit="spring"] .crown::after {
+            content: '🌸';
+            position: absolute;
+            font-size: 18px;
+        }
+        .outfit[data-outfit="spring"] .crown::before { left: 0; top: 0; }
+        .outfit[data-outfit="spring"] .crown::after { right: 0; top: 2px; }
+        .outfit[data-outfit="spring"] .crown .mid {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 16px;
+            top: -2px;
+        }
+        
+        /* Summer - sunglasses */
+        .outfit[data-outfit="summer"] .shades {
+            width: 44px;
+            height: 16px;
+            background: #333;
+            border-radius: 8px;
+            position: absolute;
+            top: 38px;
+            left: 68px;
+        }
+        .outfit[data-outfit="summer"] .shades::before,
+        .outfit[data-outfit="summer"] .shades::after {
+            content: '';
+            width: 16px; height: 16px;
+            background: #333;
+            border-radius: 50%;
+            position: absolute;
+            top: 0;
+        }
+        .outfit[data-outfit="summer"] .shades::before { left: 2px; }
+        .outfit[data-outfit="summer"] .shades::after { right: 2px; }
+        
+        /* Fall - scarf */
+        .outfit[data-outfit="fall"] .scarf {
+            width: 90px;
+            height: 24px;
+            background: #c75b39;
+            border-radius: 12px;
+            position: absolute;
+            top: 78px;
+            left: 45px;
+        }
+        .outfit[data-outfit="fall"] .scarf::after {
+            content: '';
+            width: 26px; height: 50px;
+            background: #c75b39;
+            position: absolute;
+            right: 8px;
+            top: 18px;
+            border-radius: 0 0 8px 8px;
+        }
+        
+        /* Winter - beanie */
+        .outfit[data-outfit="winter"] .beanie {
+            width: 70px;
+            height: 45px;
+            background: #e74c3c;
+            border-radius: 50% 50% 0 0;
+            position: absolute;
+            top: -5px;
+            left: 55px;
+        }
+        .outfit[data-outfit="winter"] .beanie::after {
+            content: '';
+            width: 78px; height: 16px;
+            background: #fff;
+            position: absolute;
+            bottom: 0;
+            left: -4px;
+            border-radius: 8px;
+        }
+        .outfit[data-outfit="winter"] .pom {
+            width: 16px; height: 16px;
+            background: #fff;
+            border-radius: 50%;
+            position: absolute;
+            top: -12px;
+            left: 27px;
+        }
+        
+        /* Outfit controls */
+        .outfit-btn {
+            padding: 10px 28px;
+            background: rgba(255,255,255,0.85);
+            border: 2px solid var(--accent);
+            border-radius: 24px;
+            color: var(--accent);
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition: all 0.2s;
+            margin-bottom: 8px;
+        }
+        
+        .outfit-btn:hover {
+            background: var(--accent);
+            color: white;
+        }
+        
+        .outfit-name {
+            font-size: 13px;
+            color: rgba(0,0,0,0.5);
+            font-style: italic;
+        }
+        
+        /* Doors */
+        .doors {
+            display: flex;
+            gap: 16px;
+            margin-top: 20px;
+            width: 100%;
+            max-width: 400px;
+            justify-content: center;
+        }
+        
+        .door {
+            flex: 1;
+            aspect-ratio: 1;
+            max-width: 120px;
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255,255,255,0.6);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .door::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255,255,255,0.2);
+            transition: background 0.3s;
+        }
+        
+        .door:hover {
+            transform: translateY(-6px) scale(1.03);
+            box-shadow: 0 16px 32px rgba(0,0,0,0.15);
+        }
+        
+        .door:hover::before {
+            background: rgba(255,255,255,0.35);
+        }
+        
+        .door-video { background: linear-gradient(135deg, #ffd6e0, #ffb3c1); }
+        .door-photo { background: linear-gradient(135deg, #d4f1d4, #b3e6b3); }
+        .door-music { background: linear-gradient(135deg, #d4e0f1, #b3c9e6); }
+        
+        .door-icon {
+            font-size: 32px;
+            margin-bottom: 6px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .door-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: rgba(0,0,0,0.6);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Content sections */
+        .content-area {
+            width: 100%;
+            max-width: 480px;
+            margin-top: 32px;
+            display: none;
+        }
+        
+        .content-area.active {
+            display: block;
+            animation: fadeUp 0.4s ease;
+        }
+        
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.8);
+            border: 1px solid rgba(0,0,0,0.1);
+            border-radius: 20px;
+            margin-bottom: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #666;
+            backdrop-filter: blur(10px);
+        }
+        
+        .item-card {
+            background: rgba(255,255,255,0.9);
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+            backdrop-filter: blur(10px);
+        }
+        
+        .item-card iframe {
+            width: 100%;
+            display: block;
+            border: none;
+        }
+        
+        .item-card .tiktok-embed {
+            height: 600px;
+        }
+        
+        .item-card .music-embed {
+            height: 80px;
+        }
+        
+        .item-card img {
+            width: 100%;
+            display: block;
+        }
+        
+        .item-caption {
+            padding: 12px 16px;
+            font-size: 13px;
+            color: #666;
+            font-style: italic;
+        }
+        
+        .hint {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 13px;
+            color: rgba(0,0,0,0.4);
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sky spring" id="sky"></div>
+    <div class="stars" id="stars"></div>
+    <div class="floor"></div>
+
+    <div class="porch">
+        
+        <!-- Goose -->
+        <div class="goose-house">
+            <div class="goose" id="goose" onclick="nextOutfit()">
+                <div class="goose-head">
+                    <div class="goose-eye"></div>
+                    <div class="goose-beak"></div>
+                </div>
+                <div class="goose-body">
+                    <div class="goose-wing"></div>
+                </div>
+                <div class="goose-foot foot-left"></div>
+                <div class="goose-foot foot-right"></div>
+                
+                <div class="outfit active" data-outfit="spring">
+                    <div class="crown"><span class="mid">🌼</span></div>
+                </div>
+                <div class="outfit" data-outfit="summer">
+                    <div class="shades"></div>
+                </div>
+                <div class="outfit" data-outfit="fall">
+                    <div class="scarf"></div>
+                </div>
+                <div class="outfit" data-outfit="winter">
+                    <div class="beanie"><div class="pom"></div></div>
+                </div>
+            </div>
+            
+            <button class="outfit-btn" onclick="nextOutfit()">Change Outfit</button>
+            <div class="outfit-name" id="outfitName">Spring Bloom</div>
+        </div>
+        
+        <p class="hint">Tap a door to see what's inside</p>
+        
+        <!-- Doors -->
+        <div class="doors" id="doors">
+            <div class="door door-video" onclick="showContent('videos')">
+                <div class="door-icon">🎬</div>
+                <div class="door-label">Videos</div>
+            </div>
+            <div class="door door-photo" onclick="showContent('photos')">
+                <div class="door-icon">📸</div>
+                <div class="door-label">Memes</div>
+            </div>
+            <div class="door door-music" onclick="showContent('music')">
+                <div class="door-icon">🎵</div>
+                <div class="door-label">Songs</div>
+            </div>
+        </div>
+        
+        <!-- Videos Section -->
+        <div class="content-area" id="videos">
+            <button class="back-btn" onclick="showDoors()">← Back to porch</button>
+            
+            <div class="item-card">
+                <iframe class="tiktok-embed" src="https://www.tiktok.com/embed/PUT_VIDEO_ID_HERE" allowfullscreen></iframe>
+                <div class="item-caption">the one that made me think of you</div>
+            </div>
+            
+            <div class="item-card">
+                <iframe class="tiktok-embed" src="https://www.tiktok.com/embed/PUT_VIDEO_ID_HERE" allowfullscreen></iframe>
+                <div class="item-caption">couldn't stop laughing</div>
+            </div>
+        </div>
+        
+        <!-- Photos Section -->
+        <div class="content-area" id="photos">
+            <button class="back-btn" onclick="showDoors()">← Back to porch</button>
+            
+            <div class="item-card">
+                <img src="meme1.jpg" alt="">
+                <div class="item-caption">mood</div>
+            </div>
+            
+            <div class="item-card">
+                <img src="meme2.jpg" alt="">
+                <div class="item-caption">every single day</div>
+            </div>
+        </div>
+        
+        <!-- Music Section -->
+        <div class="content-area" id="music">
+            <button class="back-btn" onclick="showDoors()">← Back to porch</button>
+            
+            <div class="item-card">
+                <iframe class="music-embed" src="https://music.youtube.com/embed/PUT_SONG_ID_HERE" allow="encrypted-media"></iframe>
+                <div class="item-caption">for when it's 2am and you're still awake</div>
+            </div>
+            
+            <div class="item-card">
+                <iframe class="music-embed" src="https://music.youtube.com/embed/PUT_SONG_ID_HERE" allow="encrypted-media"></iframe>
+                <div class="item-caption">the one that hurts good</div>
+            </div>
+        </div>
+        
+    </div>
+
+    <script>
+        // Outfits
+        const outfits = ['spring', 'summer', 'fall', 'winter'];
+        const outfitNames = {
+            spring: 'Spring Bloom 🌸',
+            summer: 'Summer Haze ☀️',
+            fall: 'Fall Cozy 🍂',
+            winter: 'Winter Quiet ❄️'
+        };
+        let currentOutfit = 0;
+        
+        function nextOutfit() {
+            document.querySelectorAll('.outfit').forEach(o => o.classList.remove('active'));
+            currentOutfit = (currentOutfit + 1) % outfits.length;
+            const outfit = outfits[currentOutfit];
+            document.querySelector(`[data-outfit="${outfit}"]`).classList.add('active');
+            document.getElementById('outfitName').textContent = outfitNames[outfit];
+            document.getElementById('sky').className = 'sky ' + outfit;
+        }
+        
+        // Content switching
+        function showContent(type) {
+            document.getElementById('doors').style.display = 'none';
+            document.querySelectorAll('.content-area').forEach(c => c.classList.remove('active'));
+            document.getElementById(type).classList.add('active');
+        }
+        
+        function showDoors() {
+            document.querySelectorAll('.content-area').forEach(c => c.classList.remove('active'));
+            document.getElementById('doors').style.display = 'flex';
+        }
+        
+        // Stars for winter
+        const starsContainer = document.getElementById('stars');
+        for (let i = 0; i < 40; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 50 + '%';
+            star.style.animationDelay = Math.random() * 2 + 's';
+            starsContainer.appendChild(star);
+        }
+    </script>
+
+</body>
+</html>
